@@ -78,6 +78,38 @@ public:
         cout << endl;
     }
 
+    LinkedList<T> split_at(size_t index) {
+        if (index >= list_size || list_size == 0) {
+            return LinkedList<T>();
+        }
+
+        LinkedList<T> new_list;
+        Node* current = first.get();
+        Node* prev = nullptr;
+        size_t current_index = 0;
+
+        while (current_index < index && current != nullptr) {
+            prev = current;
+            current = current->next.get();
+            ++current_index;
+        }
+
+        if (prev != nullptr) {
+            new_list.first = move(prev->next);
+            prev->next = nullptr;
+
+            new_list.list_size = list_size - current_index;
+            list_size = current_index;
+        }
+        else {
+            new_list.first = move(first);
+            new_list.list_size = list_size;
+            list_size = 0;
+        }
+
+        return new_list;
+    }
+
     LinkedList<T> split_when(function<bool(const T&)> condition) {
         LinkedList<T> new_list;
         Node* current = first.get();
@@ -87,11 +119,9 @@ public:
         while (current) {
             if (condition(current->data)) {
                 if (prev) {
-                    // move the rest of the list to the new list
                     new_list.first = move(prev->next);
                     prev->next = nullptr;
 
-                    // calculate the size of the new list
                     Node* temp = new_list.first.get();
                     while (temp) {
                         ++new_list_size;
@@ -104,11 +134,9 @@ public:
                     break;
                 }
                 else {
-                    // if the split happens at the first element
                     new_list.first = move(first);
                     list_size = 0;
 
-                    // calculate the size of the new list
                     Node* temp = new_list.first.get();
                     while (temp) {
                         ++new_list_size;
@@ -150,14 +178,27 @@ int main() {
     list.iterate();
     cout << "size of list after removal: " << list.size() << "\n\n";
 
-    auto split_list = list.split_when([](const int& value) { return value == 4; });
-    cout << "original list after split at 4 element: ";
+    auto splited = list.split_when([](const int& value) { return value == 4; });
+    cout << "original list after split at element '4': ";
     list.iterate();
     cout << "size of original list after split: " << list.size() << "\n\n";
 
     cout << "new list after split: ";
-    split_list.iterate();
-    cout << "size of new list after split: " << split_list.size() << "\n\n";
+    splited.iterate();
+    cout << "size of new list after split: " << splited.size() << "\n\n";
+
+    list.insert_front(0);
+    list.insert_front(-1);
+    list.insert_front(-2);
+    cout << "original list after inserting 0, -1, -2 at the front: ";
+    list.iterate();
+    cout << "size of list after insertion: " << list.size() << "\n\n";
+
+    auto splitedAt = list.split_at(3);
+    cout << "original list after split at element with index '3': ";
+    list.iterate();
+    cout << "new list after split: ";
+    splitedAt.iterate();
 
     return 0;
 }
